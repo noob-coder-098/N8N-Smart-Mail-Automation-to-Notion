@@ -1,0 +1,327 @@
+{
+  "name": "Smart Email to Notion Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        800,
+        560
+      ],
+      "id": "95616d36-19e0-48bc-a6cf-0f97a58fa9aa",
+      "name": "Get many messages",
+      "webhookId": "71518de5-e4f3-4565-8080-ca275bb2a4c0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "lK28NWZgg0SKP9gU",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        560
+      ],
+      "id": "b93e8216-55ee-45ed-9ed0-e0cd36bd4cb9",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an assistant that processes emails.  \nYour task:  \n1. Decide if the email is about a **task** or an **event**.  \n2. If YES, create a structured summary with these fields:  \n   - Title → {{ $json.Subject }} \n   - Summary → A short 1–2 sentence summary of the email body ({{ $json.snippet }}).  \n   - Sender →  {{ $json.From }}\n   - Date Received → Convert {{ $json.internalDate }} (UNIX timestamp in ms) into an ISO 8601 date-time format (YYYY-MM-DDTHH:MM:SSZ).  \n   - Category → \"Task\" or \"Event\"  \n\nIf the email is NOT about a task or event, return only:  \n`{\"skip\": true}`  \n\nOutput the result as valid JSON.\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1152,
+        560
+      ],
+      "id": "9135e121-010d-45cd-b61f-c6b6e05be695",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"Project Kickoff Meeting\",\n  \"summary\": \"The client scheduled a kickoff meeting for the new project on Monday at 10 AM.\",\n  \"sender\": \"manager@company.com\",\n  \"date_received\": \"2025-09-19T08:42:00Z\",\n  \"category\": \"Event\"\n}\n",
+        "autoFix": true,
+        "customizeRetryPrompt": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        800
+      ],
+      "id": "ef49f2a9-725d-45ce-acdc-a01129933d2a",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        800
+      ],
+      "id": "3cd03c61-f474-4568-a250-226ae0c798f7",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        992
+      ],
+      "id": "a6551596-ad77-449c-90eb-81d11b0cff8d",
+      "name": "Google Gemini Chat Model1"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "title": "={{ $json.output.title }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Title|title",
+              "title": "={{ $json.output.title }}"
+            },
+            {
+              "key": "Category|select",
+              "selectValue": "={{ $json.output.category }}"
+            },
+            {
+              "key": "Date Received|date",
+              "date": "={{ $json.output.date_received }}"
+            },
+            {
+              "key": "Sender|email",
+              "emailValue": "={{ $json.output.sender }}"
+            },
+            {
+              "key": "Summary|rich_text",
+              "textContent": "={{ $json.output.summary }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1808,
+        560
+      ],
+      "id": "bd8de290-ff23-4502-980c-57619aa6dadd",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "uvy8pDm9z4s4QltF",
+          "name": "Notion account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Step 1: Configure Schedule\n\n**What to do:**\n1. Click on this node\n2. Set how often to check emails:\n   - Every 15 minutes (recommended)\n   - Every hour\n   - Custom interval\n\n**Tips:**\n- Don't set too frequent (avoid rate limits)\n- Consider your email volume\n- Test with longer intervals first",
+        "height": 372,
+        "width": 400,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        208,
+        720
+      ],
+      "id": "6c1d0ce3-afc6-4f67-aa67-6a7740646d5a",
+      "name": "⏰ Schedule Setup"
+    },
+    {
+      "parameters": {
+        "content": "## Step 2: Gmail Connection\n\n**Setup Required:**\n1. Click on this node\n2. Create Gmail OAuth2 credential\n3. Configure filters if needed:\n   - Limit to specific labels\n   - Set max emails per run\n   - Add search filters\n\n**Current Settings:**\n- Fetches 10 emails per run\n- No filters applied\n\n⚠️ **Update the limit based on your needs!**",
+        "height": 376,
+        "width": 364,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        672,
+        720
+      ],
+      "id": "e28cc83c-6f2a-4074-a003-1a4aeb7a6177",
+      "name": "📧 Gmail Setup"
+    },
+    {
+      "parameters": {
+        "content": "## Step 3: AI Processing\n\n**This node uses AI to:**\n- Analyze email content\n- Determine if it's a task or event\n- Extract key information\n- Structure the data\n\n**Google Gemini Required:**\n- Create Google AI API key\n- Add credential to both Gemini nodes\n- The AI prompt is pre-configured\n\n✅ **No changes needed unless customizing categories**",
+        "height": 392,
+        "width": 348,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        144
+      ],
+      "id": "4c8bc796-47f0-4eff-bf53-01f347d88dd0",
+      "name": "🤖 AI Processing"
+    },
+    {
+      "parameters": {
+        "content": "## Step 4: Notion Database\n\n**Required Setup:**\n1. Create a Notion database with these properties:\n   - **Title** (Title)\n   - **Category** (Select: Task, Event)\n   - **Date Received** (Date)\n   - **Sender** (Email)\n   - **Summary** (Rich Text)\n\n2. Get database ID from URL\n3. Connect Notion account\n4. Update database ID in this node\n",
+        "height": 332,
+        "width": 384,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        720
+      ],
+      "id": "a2aad30d-b557-4fd7-b21b-2988613e34a5",
+      "name": "📊 Notion Setup"
+    },
+    {
+      "parameters": {
+        "content": "\n",
+        "height": 1360,
+        "width": 2336,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "74e52025-45df-43f2-8ad7-655d3c1b5960",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Smart Email to Notion Automation\n\n**What this workflow does:**\n- Automatically checks your Gmail for new emails\n- Uses AI to identify task and event emails\n- Creates organized entries in your Notion database",
+        "height": 192,
+        "width": 432,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        96
+      ],
+      "typeVersion": 1,
+      "id": "96df684a-144f-4f02-93dc-719d365e0dfb",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f5b252f7-3df0-498b-bdbf-c20487c988f2",
+  "meta": {
+    "instanceId": "498dd19097f281cd404ce965f402e87502d7baa728dab9dd09f3fe98a22d6ef2"
+  },
+  "id": "b6AMPbQUN3Y6vsfj",
+  "tags": []
+}
