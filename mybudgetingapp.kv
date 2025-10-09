@@ -1,0 +1,89 @@
+ScreenManager:
+
+<ScreenManager>:
+   
+    Screen:
+        name: 'LoginScreen' 
+        AnchorLayout:
+            anchor_x: 'center'
+            anchor_y: 'center'
+            Image:
+                source: 'images/loginScreen/loginscreen_background.png'
+                allow_stretch: False
+                keep_ratio: False
+            RelativeLayout:
+                Button:
+                    text : "Sign up with google"
+                    font_size: '15dp'
+                    size_hint: None,None
+                    size : '180dp' , '50dp'
+                    #background_color: 0,0,0,0
+                    #foreground_color: 1,1,1,1
+                    pos_hint: {'center_x': 0.5 ,'y': 0.25}
+                    on_press: app.on_press_get_started()
+                Label:
+                    text : "Signed in as shan190391@gmail.com"
+                    font_size: '12dp'
+                    size_hint: None,None
+                    size : '200dp' , '30dp'
+                    pos_hint: {'center_x': 0.5 ,'y': 0.22}
+                Button:
+                    text : "GET STARTED"
+                    font_size: '20dp'
+                    size_hint: None,None
+                    size : '150dp' , '50dp'
+                    background_color: 0,0.64,0.35,0.7
+                    foreground_color: 1,1,1,1
+                    pos_hint: {'center_x': 0.5 ,'y': 0.1}
+                    on_press: app.on_press_get_started()
+                    disabled: True
+                    
+                                   
+    Screen:
+        name: 'DashBoard'
+        BoxLayout:
+            orientation: 'vertical'
+            BoxLayout:
+                id : Task_Bar
+                size_hint: 1,0.08
+                orientation: 'horizontal'
+                spacing: '5dp'
+                padding: '5dp'
+                Image:
+                    source: 'images/DashBoard/Logo.png'
+                    size_hint: 0.1,1
+                    allow_stretch : True
+                    keep_ratio : True
+                Label:
+                    text:'Dash Board'
+                    font_size : '15dp'
+                    size_hint: 0.6,1
+                    text_align: 'left' # Not Working
+                ToggleButton:
+                    text:'Settings'
+                    font_size : '12dp'
+                    size_hint: 0.1,1
+            BoxLayout:
+                id : Main_Dash_Board
+                size_hint: 1, 0.92
+                orientation: 'vertical'
+                spacing: '5dp'
+                padding: '5dp'
+                StackLayout:
+                    orientation:'lr-tb'
+                    size_hint: 1 , 0.3
+                    spacing: '5dp'
+                    Button:
+                        text: "Bank1"
+                        font_size: '15dp'
+                        size_hint: 0.3,0.1 
+                    Button:
+                        text: "Bank2"
+                        font_size: '15dp'
+                        size_hint: 0.4,0.1 
+                    Button:
+                        text: "Bank3"
+                        font_size: '15dp'
+                        size_hint: 0.2,0.1 
+
+
